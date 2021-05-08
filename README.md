@@ -65,10 +65,12 @@ git clone https://github.com/AnaHristian/disaster-response-pipeline-dsnd.git
 
 In order to better understand how this app was built, I attached the two notebooks where I have created the ETL pipeline and the Machine Learning Pipeline.
 1. ETL notebook: 
+2.
 	a. read the dataset ;
 	b. clean the data;
 	c. store it in a SQLite database. 
 2. ML notebook
+
 	a. split the data into a training set and a test set;
 	b. create a machine learning pipeline that uses NLTK;
 	c. use scikit-learn's Pipeline and GridSearchCV to output a final model that uses the message column to predict classifications for 36 categories (multi-output classification);
