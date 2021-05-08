@@ -9,7 +9,8 @@
 	3. [Executing Program](#execution)
 	4. [Notebooks](#notebooks)
 3. [Licensing, Authors, Acknowledgements](#authors)
-4. [Screenshots](imgs)
+4. [Files](#files)
+5. [Screenshots](imgs)
 
 <a name="descripton"></a>
 ## Description
@@ -82,6 +83,16 @@ In order to better understand how this app was built, I attached the two noteboo
 Must give credit to [Figure Eight](https://appen.com/) for the data. Feel free to use the code here as you would like!
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+<a name="files"></a>
+## Files
+**app/templates/***: templates/html files for web app
+
+**data/process_data.py**: script that performs etl pipeline
+
+**models/train_classifier.py**: script that performs ml pipeline
+
+**run.py**: main script to run the web app
 
 <a name="imgs"></a>
 ## Screenshots
