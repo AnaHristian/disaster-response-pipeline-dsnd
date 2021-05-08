@@ -64,12 +64,12 @@ git clone https://github.com/AnaHristian/disaster-response-pipeline-dsnd.git
 ### Jupyter Notebooks
 
 In order to better understand how this app was built, I attached the two notebooks where I have created the ETL pipeline and the Machine Learning Pipeline.
-1. ETL notebook: 
+1. [ETL notebook](https://github.com/AnaHristian/disaster-response-pipeline-dsnd/blob/main/data/ETL%20Pipeline%20Preparation.ipynb): 
 
 	* read the dataset ;
 	* clean the data;
 	* store it in a SQLite database. 
-2. ML notebook:
+2. [ML notebook](https://github.com/AnaHristian/disaster-response-pipeline-dsnd/blob/main/models/ML%20Pipeline%20Preparation.ipynb):
 
 	* split the data into a training set and a test set;
 	* create a machine learning pipeline that uses NLTK;
