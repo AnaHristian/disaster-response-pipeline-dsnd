@@ -1,4 +1,4 @@
-## Disaster Response Pipelines - Data Engineering Project
+# Disaster Response Pipelines - Data Engineering Project
 ### Udacity Data Scientist Nanodegree 
 
 ## Table of Contents
@@ -16,7 +16,7 @@
 
 This app aims to analyze messages sent during natural disasters via social media or disaster response organizations. It analyzes disaster data from Figure Eight to build a model for an API that classifies disaster messages. 
 
-It has three parts:
+It contains three modules:
 
 1. An ETL pipeline that processes messages and category data from csv files and load them into a SQL database;
 2. A ML pipeline that will read from the database to create and save a multi-output supervised machine learning model;
@@ -31,11 +31,12 @@ It has three parts:
 Check out ```requirements.txt```
 
 * Python 3.5+
-* Machine Learning Libraries: NumPy, Pandas, Sciki-Learn
+* Data Processing Libraries: NumPy, Pandas
+* Machine Learning Library: Sciki-Learn (version 0.23.0), XGBoost
 * Natural Language Process Library: NLTK
 * SQLlite Database Libraqry: SQLalchemy
 * Model Loading and Saving Library: Pickle
-* Web App and Data Visualization: Flask, Plotly
+* Web App and Data Visualization: Flask, Plotly (version 2.7.0)
 
 <a name="installation"></a>
 ### Installing
@@ -60,13 +61,19 @@ git clone https://github.com/AnaHristian/disaster-response-pipeline-dsnd.git
 
 <a name="notebooks"></a>
 
-### Notebooks
+### Jupyter Notebooks
 
-In the **data** and **models** folder you can find two jupyter notebook that will help you understand how the model works step by step:
-1. **ETL Preparation Notebook**: learn everything about the implemented ETL pipeline
-2. **ML Pipeline Preparation Notebook**: look at the Machine Learning Pipeline developed with NLTK and Scikit-Learn
+In order to better understand how this app was built, I attached the two notebooks where I have created the ETL pipeline and the Machine Learning Pipeline.
+1. ETL notebook: 
+	a. read the dataset ;
+	b. clean the data;
+	c. store it in a SQLite database. 
+2. ML notebook
+	a. split the data into a training set and a test set;
+	b. create a machine learning pipeline that uses NLTK;
+	c. use scikit-learn's Pipeline and GridSearchCV to output a final model that uses the message column to predict classifications for 36 categories (multi-output classification);
+	d. export the model to a pickle file.
 
-You can use **ML Pipeline Preparation Notebook** to re-train the model or tune it through a dedicated Grid Search section.
 
 <a name="importantfiles"></a>
 ### Important Files
