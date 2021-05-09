@@ -27,7 +27,9 @@ import warnings
 warnings.filterwarnings(action='ignore')
 
 class TextLengthExtractor(BaseEstimator, TransformerMixin):
-
+    '''
+    A class to extend Sklearn's transformers to add the length of the text to the pipeline
+    '''
     def fit(self, X, y=None):
         return self
 
@@ -35,7 +37,14 @@ class TextLengthExtractor(BaseEstimator, TransformerMixin):
         return pd.Series(X).apply(lambda x: len(x)).values.reshape(-1, 1)
 
 def load_data(data_file):
-    
+    '''
+    INPUT
+        data_file - database filename
+    OUTPUT
+        X - input variables
+        y - target variables
+        category_names - message types
+    '''
     # load data from database
     engine = create_engine(f'sqlite:///{data_file}')
     # load to database
@@ -50,6 +59,12 @@ def load_data(data_file):
 
 # tokenization function to process your text data
 def tokenize(text):
+    '''
+    INPUT
+        text - one text message
+    OUTPUT
+        clean_tokens - clean normalised, tokenised and lemmatised text
+    '''
     # Normalize text
     text = re.sub(r"[^a-zA-Z0-9]", " ", text.lower())
     # Tokenize text
@@ -64,6 +79,9 @@ def tokenize(text):
     return clean_tokens
 
 def build_model():
+    """
+    Instantiate pipeline
+    """
     pipeline = Pipeline([
                         ('features', FeatureUnion([
                             ('txt_pipeline', Pipeline([
@@ -79,7 +97,13 @@ def build_model():
     return pipeline
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    
+    '''
+    INPUT
+        model - trained model
+        X_test - inbut test variabels
+        Y_test - test labels
+        category_names - message types
+    '''
     # predict on test data
     Y_pred = model.predict(X_test)
     
@@ -108,6 +132,11 @@ def evaluate_model(model, X_test, Y_test, category_names):
     print(results)
     
 def save_model(model, model_filepath):
+    """
+    INPUT
+        model - trained model
+        model_filepath - model filename
+    """
     pickle.dump(model, open(model_filepath, 'wb'))
     
 def main():
