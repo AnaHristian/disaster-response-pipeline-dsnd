@@ -51,9 +51,9 @@ git clone https://github.com/AnaHristian/disaster-response-pipeline-dsnd.git
 1. You can run the following commands in the project's directory to set up the database, train model and save the model.
 
     - To run ETL pipeline to clean data and store the processed data in the database
-        `python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/disaster_response_db.db`
+	`python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db`
     - To run the ML pipeline that loads data from DB, trains classifier and saves the classifier as a pickle file
-        `python models/train_classifier.py data/disaster_response_db.db models/classifier.pkl`
+        `python models/train_classifier.py data/DisasterResponse.db models/classifier.pk`
 
 2. Run the following command in the app's directory to run your web app.
     `python run.py`
