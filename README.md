@@ -106,3 +106,7 @@ This is and example of how the model classify a message in real time. So, the mo
 ![Message classification result](app_img/message_classification.PNG)
 ETL file run example:
 ![ETL](app_img/etl.PNG)
+ML pipeline output
+![ML pipeline](app_img/mlpipeline.PNG)
+
+
