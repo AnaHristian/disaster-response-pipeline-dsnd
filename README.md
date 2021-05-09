@@ -104,3 +104,5 @@ The *Distribution of Message Genres* and *Top Ten Message Types* bar charts are 
 ![Top ten messages](app_img/top_ten_message_types.PNG)
 This is and example of how the model classify a message in real time. So, the model receives a message regarding a disaster and it tells the user what type of message it could be, helping the user to quickly identify it.
 ![Message classification result](app_img/message_classification.PNG)
+ETL file run example:
+![ETL](app_img/etl.PNG)
