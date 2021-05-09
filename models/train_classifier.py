@@ -1,130 +1,141 @@
-import json
-import plotly
-import pandas as pd
-
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
-
-from flask import Flask
-from flask import render_template, request, jsonify
-from plotly.graph_objs import Bar
-#from sklearn.externals import joblib
-import joblib
+import nltk
+nltk.download(['punkt', 'wordnet', 'averaged_perceptron_tagger'])
+# import libraries
+import sys
+import sqlite3
 from sqlalchemy import create_engine
+import numpy as np
+import pandas as pd
+import pickle
+
+import re
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
 from sklearn.base import BaseEstimator, TransformerMixin
+#from xgboost import XGBClassifier
 
-
-app = Flask(__name__)
-
-def tokenize(text):
-    tokens = word_tokenize(text)
-    lemmatizer = WordNetLemmatizer()
-
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
-
-    return clean_tokens
-
+import warnings
+warnings.filterwarnings(action='ignore')
 
 class TextLengthExtractor(BaseEstimator, TransformerMixin):
-    '''
-    A class to extend Sklearn's transformers to add the length of the text to the pipeline
-    '''
+
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
-        """
-        Given an input text, return its length
-        """
         return pd.Series(X).apply(lambda x: len(x)).values.reshape(-1, 1)
 
-# load data
-engine = create_engine('sqlite:///../data/DisasterResponse.db')
-df = pd.read_sql_table('Message', engine)
-
-# load model
-model = joblib.load("../models/classifier.pkl")
-
-
-# index webpage displays cool visuals and receives user input text for model
-@app.route('/')
-@app.route('/index')
-def index():
+def load_data(data_file):
     
-    # graph 1
-    genre_counts = df.groupby('genre').count()['message']
-    genre_names = list(genre_counts.index)
+    # load data from database
+    engine = create_engine(f'sqlite:///{data_file}')
+    # load to database
+    df = pd.read_sql("SELECT * FROM Message", engine)
     
-    graph_one = []
+    # define features and label arrays
+    category_names = list(df.columns[4:])
+    X = df['message'].values
+    y = df[category_names].values
     
-    graph_one.append(
-        Bar(
-            x = genre_names,
-            y = genre_counts
-            )
-        )
-      
-    layout_one = dict(title = 'Distribution of Message Genres',
-                    xaxis = dict(title = 'Count'),
-                    yaxis = dict(title = 'Genre'),
-                )
+    return X, y, category_names
+
+# tokenization function to process your text data
+def tokenize(text):
+    # Normalize text
+    text = re.sub(r"[^a-zA-Z0-9]", " ", text.lower())
+    # Tokenize text
+    tokens = word_tokenize(text.strip())
+    lemmatizer = WordNetLemmatizer()
+
+    clean_tokens = []
+
+    for tok in tokens:
+        clean_tok = lemmatizer.lemmatize(tok).strip()
+        clean_tokens.append(clean_tok)
+    return clean_tokens
+
+def build_model():
+    pipeline = Pipeline([
+                        ('features', FeatureUnion([
+                            ('txt_pipeline', Pipeline([
+                                ('vect', CountVectorizer()),
+                                ('tfidf', TfidfTransformer())
+                            ])),
+                            ('txt_len', TextLengthExtractor())
+                        ])),
+                        #('clf', MultiOutputClassifier(XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')))
+                        ('clf', MultiOutputClassifier(RandomForestClassifier()))
+        
+                    ])
+    return pipeline
+
+def evaluate_model(model, X_test, Y_test, category_names):
     
-    # graph 2 - top ten messages
-    categories = list(df.columns[4:])
-    message_name = list(df[categories].sum().sort_values(ascending=False)[:10].index)
-    message_percent = list((df[categories].sum().sort_values(ascending=False)/df.shape[0]*100).iloc[:10])
+    # predict on test data
+    Y_pred = model.predict(X_test)
     
-    graph_two = []
+    results_dict = dict()
+
+    for index, col in enumerate(category_names):
+
+        # get model results as dictionary
+        report = classification_report(Y_test[:, index], Y_pred[:, index], zero_division=0, output_dict=True)
+        # get results from classification report
+        accuracy = report['accuracy'] 
+        f1_score = report['weighted avg']['f1-score'] 
+        precision = report['weighted avg']['precision'] 
+        recall = report['weighted avg']['recall']
+        # set result in dictionary
+        results_dict[col] = {
+                'Accuracy': accuracy,
+                'F1-score': f1_score,
+                'Precision': precision,
+                'Recall': recall
+        }
+
+    results = pd.DataFrame.from_dict(results_dict, orient='index')
+    print('Aggregated results: ')
+    print(results.mean().to_string())
+    print(results)
     
-    graph_two.append(
-      Bar(
-      x = message_percent,
-      y = message_name,
-      orientation = 'h'
-      )
-    )
-
-    layout_two = dict(title = 'Top Ten Message Types',
-                xaxis = dict(title = 'Message Type',),
-                yaxis = dict(title = 'Messages %'),
-                )
-
-
-    graphs = []
-    graphs.append(dict(data=graph_one, layout=layout_one))
-    graphs.append(dict(data=graph_two, layout=layout_two))
+def save_model(model, model_filepath):
+    pickle.dump(model, open(model_filepath, 'wb'))
     
-    # encode plotly graphs in JSON
-    ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
-    graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
-    
-    # render web page with plotly graphs
-    return render_template('master.html', ids=ids, graphJSON=graphJSON)
-
-
-# web page that handles user query and displays model results
-@app.route('/go')
-def go():
-    # save user input in query
-    query = request.args.get('query', '') 
-
-    # use model to predict classification for query
-    classification_labels = model.predict([query])[0]
-    classification_results = dict(zip(df.columns[4:], classification_labels))
-
-    # This will render the go.html Please see that file. 
-    return render_template(
-        'go.html',
-        query=query,
-        classification_result=classification_results
-    )
-
-
 def main():
-    app.run(host='0.0.0.0', port=3001, debug=True)
+    if len(sys.argv) == 3:
+        database_filepath, model_filepath = sys.argv[1:]
+        print('Loading data...\n    DATABASE: {}'.format(database_filepath))
+        X, Y, category_names = load_data(database_filepath)
+        X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
+        
+        print('Building model...')
+        model = build_model()
+        
+        print('Training model...')
+        model.fit(X_train, Y_train)
+        
+        print('Evaluating model...')
+        evaluate_model(model, X_test, Y_test, category_names)
+
+        print('Saving model...\n    MODEL: {}'.format(model_filepath))
+        save_model(model, model_filepath)
+
+        print('Trained model saved!')
+
+    else:
+        print('Please provide the filepath of the disaster messages database '\
+              'as the first argument and the filepath of the pickle file to '\
+              'save the model to as the second argument. \n\nExample: python '\
+              'train_classifier.py ../data/DisasterResponse.db classifier.pkl')
 
 
 if __name__ == '__main__':
